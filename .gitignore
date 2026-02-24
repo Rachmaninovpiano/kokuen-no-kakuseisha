@@ -1,0 +1,19 @@
+# Claude Code
+.claude/
+
+# Windows
+nul
+Thumbs.db
+desktop.ini
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Editor
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store

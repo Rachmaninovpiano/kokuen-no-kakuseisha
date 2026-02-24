@@ -1,0 +1,1139 @@
+/* ============================================
+   黒炎の覚醒者 - WEB小説+漫画ビューア
+   縦スクロール版
+   ============================================ */
+
+/* --- リセット & ベース --- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: 'Gothic';
+  src: local('Yu Gothic Medium'), local('YuGothic-Medium'), local('Meiryo');
+}
+
+:root {
+  --bg-dark: #0a0a0f;
+  --bg-page: #111118;
+  --bg-panel: #16161f;
+  --text-main: #d4d0c8;
+  --text-bright: #f0ece0;
+  --text-dim: #7a7670;
+  --accent-flame: #ff3c00;
+  --accent-void: #8b00ff;
+  --accent-holy: #00d4ff;
+  --accent-crimson: #dc143c;
+  --accent-gold: #ffd700;
+  --border-glow: rgba(255, 60, 0, 0.3);
+  --font-novel: 'Noto Serif JP', 'Yu Mincho', 'MS Mincho', serif;
+  --font-ui: 'Gothic', 'Yu Gothic', 'Meiryo', sans-serif;
+  --font-title: 'Gothic', 'Yu Gothic', 'Meiryo', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-novel);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- ローディング画面 --- */
+#loading-screen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #000;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1s ease, visibility 1s ease;
+}
+
+#loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#loading-screen .loading-flame {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-flame), var(--accent-void), transparent);
+  animation: loadPulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 60px var(--accent-flame), 0 0 120px var(--accent-void);
+}
+
+#loading-screen .loading-text {
+  margin-top: 30px;
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  letter-spacing: 0.3em;
+  animation: loadFade 2s ease-in-out infinite;
+}
+
+@keyframes loadPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+
+@keyframes loadFade {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* --- タイトル画面 --- */
+#title-screen {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #000 0%, #0a0008 40%, #0f0015 70%, #000 100%);
+  overflow: hidden;
+}
+
+.title-particles {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.title-main {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 40px;
+}
+
+.title-main h1 {
+  font-family: var(--font-title);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  color: transparent;
+  background: linear-gradient(135deg, var(--accent-flame), var(--accent-void), var(--accent-flame));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: titleGradient 4s ease infinite;
+  text-shadow: 0 0 80px rgba(255, 60, 0, 0.5);
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+}
+
+.title-main .subtitle {
+  font-family: var(--font-title);
+  font-size: clamp(0.9rem, 2vw, 1.4rem);
+  color: var(--text-dim);
+  margin-top: 20px;
+  letter-spacing: 0.5em;
+  font-weight: 300;
+}
+
+.title-main .subtitle-drama {
+  font-family: var(--font-novel);
+  font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+  color: var(--accent-void);
+  margin-top: 15px;
+  font-style: italic;
+  letter-spacing: 0.2em;
+  opacity: 0.8;
+}
+
+.title-quote {
+  margin-top: 50px;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
+  color: var(--accent-flame);
+  opacity: 0.7;
+  font-style: italic;
+  max-width: 600px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.start-button {
+  margin-top: 60px;
+  padding: 18px 60px;
+  background: transparent;
+  border: 1px solid var(--accent-flame);
+  color: var(--accent-flame);
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  letter-spacing: 0.3em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  z-index: 2;
+}
+
+.start-button::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  background: var(--accent-flame);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.6s ease;
+  z-index: -1;
+}
+
+.start-button:hover {
+  color: #000;
+  border-color: var(--accent-flame);
+  box-shadow: 0 0 30px var(--accent-flame);
+}
+
+.start-button:hover::before {
+  width: 400px;
+  height: 400px;
+}
+
+@keyframes titleGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- 目次画面 --- */
+#toc-screen {
+  display: none;
+  min-height: 100vh;
+  background: var(--bg-dark);
+  padding: 60px 20px;
+}
+
+.toc-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.toc-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.toc-header h2 {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  color: var(--accent-flame);
+  letter-spacing: 0.2em;
+}
+
+.toc-header .toc-sub {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-top: 10px;
+  letter-spacing: 0.3em;
+}
+
+.toc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toc-item {
+  padding: 18px 25px;
+  background: var(--bg-panel);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.toc-item:hover {
+  background: rgba(255, 60, 0, 0.08);
+  border-left-color: var(--accent-flame);
+  transform: translateX(5px);
+}
+
+.toc-item .ep-num {
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  color: var(--accent-flame);
+  min-width: 60px;
+  letter-spacing: 0.1em;
+}
+
+.toc-item .ep-title {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--text-bright);
+  letter-spacing: 0.05em;
+}
+
+/* --- リーダー画面 --- */
+#reader-screen {
+  display: none;
+  min-height: 100vh;
+  background: var(--bg-dark);
+}
+
+/* スクロール進捗バー */
+.scroll-progress-bar {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-flame), var(--accent-void));
+  z-index: 101;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--accent-flame);
+}
+
+/* ナビバー */
+.reader-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: rgba(10, 10, 15, 0.95);
+  border-bottom: 1px solid rgba(255, 60, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.reader-nav .nav-back {
+  background: none;
+  border: none;
+  color: var(--accent-flame);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  padding: 8px 15px;
+  transition: opacity 0.3s;
+}
+
+.reader-nav .nav-back:hover {
+  opacity: 0.7;
+}
+
+.reader-nav .nav-title {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+}
+
+/* --- 縦スクロールコンテナ --- */
+.reader-content {
+  padding-top: 50px;
+}
+
+.episode-scroll {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px 100px;
+}
+
+/* --- 章扉ヘッダー --- */
+.section-header {
+  text-align: center;
+  padding: 80px 20px 60px;
+}
+
+.section-header .chapter-num {
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  color: var(--accent-flame);
+  letter-spacing: 0.4em;
+  margin-bottom: 15px;
+}
+
+.section-header .chapter-title {
+  font-family: var(--font-title);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  color: var(--text-bright);
+  line-height: 1.6;
+  letter-spacing: 0.1em;
+}
+
+.section-header .chapter-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 12px;
+  font-style: italic;
+}
+
+.section-header .chapter-line {
+  width: 60px;
+  height: 1px;
+  background: var(--accent-flame);
+  margin: 30px auto 0;
+  opacity: 0.5;
+}
+
+/* --- セクション共通 --- */
+.section {
+  margin-bottom: 10px;
+}
+
+/* --- 漫画セクション --- */
+.section-manga {
+  margin-left: -16px;
+  margin-right: -16px;
+}
+
+/* --- テキストセクション --- */
+.section-text {
+  padding: 40px 10px;
+}
+
+/* --- 本文スタイル --- */
+.novel-body {
+  font-size: clamp(0.95rem, 1.2vw, 1.08rem);
+  line-height: 2;
+  color: var(--text-main);
+  letter-spacing: 0.04em;
+}
+
+.novel-body p {
+  margin-bottom: 1.5em;
+  text-indent: 1em;
+}
+
+.novel-body p.no-indent {
+  text-indent: 0;
+}
+
+.novel-body .scene-break {
+  text-align: center;
+  margin: 2.5em 0;
+  color: var(--accent-flame);
+  font-size: 1.2rem;
+  letter-spacing: 1em;
+  opacity: 0.5;
+}
+
+/* 台詞 */
+.novel-body .dialogue {
+  text-indent: 0;
+  position: relative;
+  padding-left: 0;
+}
+
+/* 主人公の台詞 */
+.novel-body .void-speech {
+  text-indent: 0;
+  color: var(--accent-flame);
+  font-style: italic;
+  position: relative;
+  padding: 8px 0 8px 15px;
+  border-left: 2px solid rgba(255, 60, 0, 0.3);
+  margin: 1.5em 0;
+  background: linear-gradient(90deg, rgba(255, 60, 0, 0.03), transparent);
+}
+
+/* 重要台詞 */
+.novel-body .dramatic {
+  text-indent: 0;
+  font-size: 1.1em;
+  color: var(--text-bright);
+  text-align: center;
+  margin: 2em 0;
+  line-height: 2.2;
+  letter-spacing: 0.1em;
+}
+
+/* 内心描写 */
+.novel-body .inner-voice {
+  color: rgba(139, 0, 255, 0.85);
+  font-style: italic;
+}
+
+/* ルビ */
+ruby rt {
+  font-size: 0.55em;
+  color: var(--text-dim);
+}
+
+/* 強調 */
+.novel-body strong {
+  color: var(--text-bright);
+  font-weight: normal;
+  text-shadow: 0 0 10px rgba(255, 60, 0, 0.3);
+}
+
+.novel-body em {
+  color: var(--accent-void);
+  font-style: normal;
+}
+
+/* 予言・碑文 */
+.prophecy {
+  text-indent: 0;
+  text-align: center;
+  padding: 20px 30px;
+  margin: 2em 0;
+  border: 1px solid rgba(139, 0, 255, 0.3);
+  background: rgba(139, 0, 255, 0.05);
+  color: var(--accent-void);
+  font-size: 0.95em;
+  line-height: 2.2;
+  letter-spacing: 0.1em;
+}
+
+/* --- エピソード終了フッター --- */
+.section-footer {
+  text-align: center;
+  padding: 60px 20px 80px;
+}
+
+.episode-end-line {
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-flame), transparent);
+  margin: 0 auto 30px;
+}
+
+.episode-end-text {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--text-dim);
+  letter-spacing: 0.3em;
+  margin-bottom: 15px;
+}
+
+.episode-end-sub {
+  font-family: var(--font-novel);
+  font-size: 0.85rem;
+  color: var(--accent-void);
+  letter-spacing: 0.2em;
+  opacity: 0.7;
+  margin-bottom: 15px;
+}
+
+.next-episode-btn {
+  margin-top: 30px;
+  padding: 15px 40px;
+  background: transparent;
+  border: 1px solid var(--accent-flame);
+  color: var(--accent-flame);
+  font-family: var(--font-title);
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.next-episode-btn:hover {
+  background: rgba(255, 60, 0, 0.1);
+  box-shadow: 0 0 20px rgba(255, 60, 0, 0.2);
+}
+
+/* --- フェードインアニメーション --- */
+.section-fade {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.section-fade.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =============================================
+   漫画コマ割りシステム（縦スクロール版）
+   ============================================= */
+
+/* --- 漫画ページ全体 --- */
+.manga-page {
+  width: 100%;
+  background: #000;
+  display: grid;
+  gap: 3px;
+  padding: 3px;
+  position: relative;
+}
+
+/* --- コマ割りレイアウトバリエーション --- */
+/* A: 大コマ上 + 2コマ下 */
+.manga-page.layout-A {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+.manga-page.layout-A .panel:nth-child(1) { grid-column: 1 / -1; }
+.manga-page.layout-A .panel:nth-child(1) { aspect-ratio: 16/9; }
+.manga-page.layout-A .panel:nth-child(n+2) { aspect-ratio: 4/3; }
+
+/* B: 4コマ：2x2グリッド */
+.manga-page.layout-B {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+.manga-page.layout-B .panel { aspect-ratio: 4/3; }
+
+/* C: 上2コマ + 大コマ下 */
+.manga-page.layout-C {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+.manga-page.layout-C .panel:nth-child(3) { grid-column: 1 / -1; }
+.manga-page.layout-C .panel:nth-child(-n+2) { aspect-ratio: 4/3; }
+.manga-page.layout-C .panel:nth-child(3) { aspect-ratio: 16/9; }
+
+/* D: 縦3段 */
+.manga-page.layout-D {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto;
+}
+.manga-page.layout-D .panel { aspect-ratio: 16/9; }
+
+/* E: 変則 上に大、中2、下2 */
+.manga-page.layout-E {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+}
+.manga-page.layout-E .panel:nth-child(1) { grid-column: 1 / -1; aspect-ratio: 21/9; }
+.manga-page.layout-E .panel:nth-child(n+2) { aspect-ratio: 4/3; }
+
+/* F: 左大+右2段 */
+.manga-page.layout-F {
+  grid-template-columns: 1.3fr 1fr;
+  grid-template-rows: auto auto;
+}
+.manga-page.layout-F .panel:nth-child(1) { grid-row: 1 / -1; aspect-ratio: 3/4; }
+.manga-page.layout-F .panel:nth-child(n+2) { aspect-ratio: 16/9; }
+
+/* --- コマ（パネル） --- */
+.panel {
+  position: relative;
+  overflow: hidden;
+  background: #111;
+  border: 2px solid #000;
+}
+
+.panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  filter: brightness(0.9) contrast(1.1) saturate(1.1);
+  transition: filter 0.4s ease;
+}
+
+.panel:hover img {
+  filter: brightness(1) contrast(1.15) saturate(1.15);
+}
+
+/* コマ内ダークオーバーレイ */
+.panel .panel-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.panel .panel-overlay-vignette {
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
+}
+.panel .panel-overlay-bottom {
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 40%);
+}
+.panel .panel-overlay-top {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 35%);
+}
+.panel .panel-overlay-flame {
+  background:
+    radial-gradient(ellipse at bottom, rgba(255,60,0,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+}
+
+/* --- 吹き出し --- */
+.balloon {
+  position: absolute;
+  z-index: 10;
+  font-family: var(--font-ui);
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+  padding: 10px 16px;
+  max-width: 55%;
+  pointer-events: none;
+  animation: balloonPop 0.4s ease-out both;
+}
+
+/* 通常吹き出し */
+.balloon-normal {
+  background: #fff;
+  color: #111;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.balloon-normal::after {
+  content: '';
+  position: absolute;
+  width: 0; height: 0;
+  border-style: solid;
+}
+.balloon-normal.tail-bottom::after {
+  bottom: -10px; left: 30px;
+  border-width: 10px 8px 0 8px;
+  border-color: #fff transparent transparent transparent;
+}
+.balloon-normal.tail-left::after {
+  left: -10px; top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 10px 8px 0;
+  border-color: transparent #fff transparent transparent;
+}
+.balloon-normal.tail-right::after {
+  right: -10px; top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 0 8px 10px;
+  border-color: transparent transparent transparent #fff;
+}
+
+/* 叫び吹き出し */
+.balloon-shout {
+  background: #fff;
+  color: #111;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 14px 20px;
+  clip-path: polygon(
+    5% 15%, 0% 0%, 15% 10%,
+    25% 0%, 30% 12%, 45% 2%,
+    50% 14%, 65% 0%, 68% 12%,
+    80% 2%, 82% 15%, 95% 5%,
+    100% 20%, 98% 35%, 100% 50%,
+    98% 65%, 100% 80%, 92% 85%,
+    85% 100%, 70% 90%, 55% 100%,
+    45% 92%, 30% 100%, 20% 88%,
+    8% 98%, 5% 85%, 0% 75%,
+    2% 55%, 0% 40%, 3% 25%
+  );
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+
+/* 主人公専用吹き出し */
+.balloon-void {
+  background: rgba(10, 5, 5, 0.92);
+  color: var(--accent-flame);
+  border: 1px solid rgba(255, 60, 0, 0.4);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-style: italic;
+  font-family: var(--font-novel);
+  box-shadow: 0 0 20px rgba(255, 60, 0, 0.2), 0 4px 15px rgba(0,0,0,0.7);
+}
+.balloon-void::after {
+  content: '';
+  position: absolute;
+  width: 0; height: 0;
+  border-style: solid;
+}
+.balloon-void.tail-bottom::after {
+  bottom: -10px; left: 30px;
+  border-width: 10px 8px 0 8px;
+  border-color: rgba(10,5,5,0.92) transparent transparent transparent;
+}
+.balloon-void.tail-left::after {
+  left: -10px; top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 10px 8px 0;
+  border-color: transparent rgba(10,5,5,0.92) transparent transparent;
+}
+
+/* 思考吹き出し */
+.balloon-thought {
+  background: rgba(139, 0, 255, 0.15);
+  color: rgba(200, 180, 255, 0.9);
+  border: 1px solid rgba(139, 0, 255, 0.25);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-style: italic;
+  font-family: var(--font-novel);
+}
+.balloon-thought::before {
+  content: '';
+  position: absolute;
+  bottom: -15px; left: 25px;
+  width: 10px; height: 10px;
+  background: rgba(139,0,255,0.15);
+  border: 1px solid rgba(139,0,255,0.25);
+  border-radius: 50%;
+}
+.balloon-thought::after {
+  content: '';
+  position: absolute;
+  bottom: -24px; left: 18px;
+  width: 6px; height: 6px;
+  background: rgba(139,0,255,0.15);
+  border: 1px solid rgba(139,0,255,0.25);
+  border-radius: 50%;
+}
+
+/* ナレーション */
+.balloon-narration {
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--text-main);
+  font-family: var(--font-novel);
+  font-size: 0.82rem;
+  border-left: 2px solid var(--accent-flame);
+  border-radius: 0;
+  padding: 8px 14px;
+  line-height: 1.7;
+}
+
+/* --- 効果音（オノマトペ） --- */
+.sfx {
+  position: absolute;
+  z-index: 12;
+  font-family: var(--font-title);
+  font-weight: 900;
+  pointer-events: none;
+  text-shadow: 0 0 15px currentColor, 2px 2px 0 rgba(0,0,0,0.8);
+  letter-spacing: 0.1em;
+  animation: sfxAppear 0.5s ease-out both;
+}
+
+.sfx-large  { font-size: clamp(2rem, 5vw, 3.5rem); }
+.sfx-medium { font-size: clamp(1.3rem, 3vw, 2rem); }
+.sfx-small  { font-size: clamp(0.9rem, 2vw, 1.3rem); }
+
+.sfx-white   { color: #fff; }
+.sfx-flame   { color: var(--accent-flame); text-shadow: 0 0 20px var(--accent-flame), 0 0 40px rgba(255,60,0,0.5), 2px 2px 0 #000; }
+.sfx-void    { color: var(--accent-void); text-shadow: 0 0 20px var(--accent-void), 0 0 40px rgba(139,0,255,0.5), 2px 2px 0 #000; }
+.sfx-crimson { color: var(--accent-crimson); text-shadow: 0 0 20px var(--accent-crimson), 2px 2px 0 #000; }
+.sfx-gold    { color: var(--accent-gold); text-shadow: 0 0 15px var(--accent-gold), 2px 2px 0 #000; }
+
+.sfx-tilt-r  { transform: rotate(8deg); }
+.sfx-tilt-l  { transform: rotate(-10deg); }
+.sfx-tilt-r2 { transform: rotate(20deg); }
+.sfx-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+@keyframes balloonPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sfxAppear {
+  from { opacity: 0; transform: scale(0.5) rotate(-5deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* --- エフェクト --- */
+.flame-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--accent-flame);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: floatUp 3s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(0) scale(1); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-200px) scale(0); }
+}
+
+/* --- 特殊エフェクト：覚醒シーン --- */
+.awakening-effect {
+  animation: awaken 2s ease-in-out;
+}
+
+@keyframes awaken {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(0.3); }
+  60% { filter: brightness(2) hue-rotate(30deg); }
+  100% { filter: brightness(1); }
+}
+
+/* --- スクロールバー --- */
+body::-webkit-scrollbar {
+  width: 6px;
+}
+
+body::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+body::-webkit-scrollbar-thumb {
+  background: rgba(255, 60, 0, 0.3);
+  border-radius: 3px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 60, 0, 0.5);
+}
+
+/* --- タッチ操作対応 --- */
+button, .toc-item, .next-episode-btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* --- レスポンシブ：タブレット (900px以下) --- */
+@media (max-width: 900px) {
+  .episode-scroll {
+    max-width: 100%;
+    padding: 0 10px 80px;
+  }
+
+  .section-text {
+    padding: 30px 10px;
+  }
+
+  .balloon { font-size: 0.75rem; padding: 8px 12px; }
+  .sfx-large { font-size: 1.8rem; }
+}
+
+/* --- レスポンシブ：スマホ (600px以下) --- */
+@media (max-width: 600px) {
+
+  /* -- タイトル画面 -- */
+  .title-main {
+    padding: 20px 16px;
+  }
+
+  .title-main h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .title-main .subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    margin-top: 12px;
+  }
+
+  .title-main .subtitle-drama {
+    font-size: 0.7rem;
+  }
+
+  .title-quote {
+    margin-top: 30px;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    padding: 0 10px;
+  }
+
+  .start-button {
+    margin-top: 40px;
+    padding: 16px 50px;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+
+  /* -- 目次画面 -- */
+  #toc-screen {
+    padding: 40px 12px;
+  }
+
+  .toc-header {
+    margin-bottom: 30px;
+  }
+
+  .toc-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .toc-item {
+    padding: 16px 14px;
+    min-height: 48px;
+    gap: 12px;
+  }
+
+  .toc-item .ep-num {
+    font-size: 0.7rem;
+    min-width: 45px;
+  }
+
+  .toc-item .ep-title {
+    font-size: 0.9rem;
+  }
+
+  /* -- ナビバー -- */
+  .reader-nav {
+    height: 44px;
+    padding: 0 10px;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .reader-nav .nav-back {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .reader-nav .nav-title {
+    font-size: 0.7rem;
+    max-width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reader-content {
+    padding-top: 44px;
+    padding-top: calc(44px + env(safe-area-inset-top, 0px));
+  }
+
+  .scroll-progress-bar {
+    top: 44px;
+    top: calc(44px + env(safe-area-inset-top, 0px));
+  }
+
+  /* -- スクロールコンテナ -- */
+  .episode-scroll {
+    padding: 0 0 80px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* -- 章扉ヘッダー -- */
+  .section-header {
+    padding: 50px 16px 40px;
+  }
+
+  .section-header .chapter-title {
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+  }
+
+  .section-header .chapter-subtitle {
+    font-size: 0.75rem;
+  }
+
+  /* -- 漫画セクション -- */
+  .section-manga {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .manga-page {
+    gap: 3px;
+    padding: 3px;
+  }
+
+  /* スマホでは全レイアウトを1カラム縦積みに */
+  .manga-page.layout-A,
+  .manga-page.layout-B,
+  .manga-page.layout-C,
+  .manga-page.layout-D,
+  .manga-page.layout-E,
+  .manga-page.layout-F {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  /* グリッド配置をリセット */
+  .manga-page .panel {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    aspect-ratio: 3/2 !important;
+    border-width: 1px;
+  }
+
+  /* -- 吹き出し & SFX -- */
+  .balloon {
+    max-width: 75%;
+    font-size: 0.7rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  .balloon-narration {
+    max-width: 80%;
+    font-size: 0.65rem;
+    padding: 6px 10px;
+  }
+
+  .balloon-void {
+    font-size: 0.65rem;
+  }
+
+  .sfx-large { font-size: 1.6rem; }
+  .sfx-medium { font-size: 1rem; }
+
+  /* -- テキストセクション -- */
+  .section-text {
+    padding: 30px 16px;
+  }
+
+  .novel-body {
+    font-size: 0.95rem;
+    line-height: 2.0;
+    letter-spacing: 0.02em;
+  }
+
+  .novel-body p {
+    margin-bottom: 1.4em;
+  }
+
+  .novel-body .dialogue,
+  .novel-body .void-speech {
+    padding-left: 12px;
+    font-size: 0.95rem;
+  }
+
+  /* -- エピソード終了フッター -- */
+  .section-footer {
+    padding: 40px 16px 20px;
+  }
+
+  .next-episode-btn {
+    font-size: 0.85rem;
+    padding: 14px 30px;
+    min-height: 48px;
+  }
+
+  .episode-end-sub {
+    font-size: 0.85rem;
+  }
+}
+
+/* --- レスポンシブ：小型スマホ (400px以下) --- */
+@media (max-width: 400px) {
+  .title-main h1 {
+    font-size: 1.8rem;
+  }
+
+  .title-main .subtitle {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .balloon {
+    font-size: 0.6rem;
+    padding: 5px 8px;
+    max-width: 80%;
+  }
+
+  .sfx-large { font-size: 1.3rem; }
+
+  .novel-body {
+    font-size: 0.9rem;
+    line-height: 1.9;
+  }
+}

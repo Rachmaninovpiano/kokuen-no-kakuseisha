@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>黒炎の覚醒者 ～世界の理を壊す者よ、汝の名は混沌～</title>
+  <meta name="description" content="黒炎の覚醒者 — 異世界転生WEB漫画+小説。すべてを拒んだ少年に宿る、すべてを滅ぼす力の物語。">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- OGP -->
+  <meta property="og:title" content="黒炎の覚醒者 ～世界の理を壊す者よ、汝の名は混沌～">
+  <meta property="og:description" content="異世界転生WEB漫画+小説。すべてを拒んだ少年に宿る、すべてを滅ぼす力の物語。">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========== ローディング画面 ========== -->
+  <div id="loading-screen">
+    <div class="loading-flame"></div>
+    <div class="loading-text">黒 炎 覚 醒 中 ...</div>
+  </div>
+
+  <!-- ========== タイトル画面 ========== -->
+  <div id="title-screen">
+    <canvas id="particle-canvas" class="title-particles"></canvas>
+    <div class="title-main">
+      <h1>黒炎の覚醒者</h1>
+      <div class="subtitle">～ 世界の理を壊す者よ、汝の名は混沌 ～</div>
+      <div class="subtitle-drama">第一巻</div>
+      <div class="title-quote">
+        「俺は世界に生まれたのではない。<br>
+        世界が俺を必要としたのだ」
+      </div>
+      <button class="start-button" id="btn-start">開　巻</button>
+    </div>
+  </div>
+
+  <!-- ========== 目次画面 ========== -->
+  <div id="toc-screen">
+    <div class="toc-container">
+      <div class="toc-header">
+        <h2>黒炎の覚醒者</h2>
+        <div class="toc-sub">第 一 巻 　 目 次</div>
+      </div>
+      <ul class="toc-list" id="toc-list">
+        <!-- JSで生成 -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== リーダー画面 ========== -->
+  <div id="reader-screen">
+    <div class="reader-nav">
+      <button class="nav-back" id="btn-back-toc">◁ 目次</button>
+      <span class="nav-title"></span>
+    </div>
+    <div class="scroll-progress-bar" id="scroll-progress" style="width:0%"></div>
+    <div class="reader-content" id="reader-content">
+      <!-- JSでエピソードを描画 -->
+    </div>
+  </div>
+
+  <!-- ========== スクリプト ========== -->
+  <script src="js/episodes1-3.js"></script>
+  <script>
+    // エピソードデータを統合
+    const EPISODES = [
+      ...EPISODES_1_3
+    ];
+  </script>
+  <script src="js/viewer.js"></script>
+  <script>
+    // 目次を生成
+    function buildTOC() {
+      const list = document.getElementById('toc-list');
+      EPISODES.forEach((ep, i) => {
+        const li = document.createElement('li');
+        li.className = 'toc-item';
+        li.onclick = () => openEpisode(i + 1);
+        li.innerHTML = `
+          <span class="ep-num">第${i + 1}話</span>
+          <span class="ep-title">${ep.title}</span>
+        `;
+        list.appendChild(li);
+      });
+    }
+    buildTOC();
+  </script>
+</body>
+</html>
